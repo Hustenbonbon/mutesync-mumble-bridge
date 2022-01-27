@@ -1,34 +1,25 @@
 const io = require("socket.io-client");
-const { execFile } = require("child_process");
+const net = require("net");
 
-const sendTerminal = (message) => {
-    execFile('mumble', ['rpc',message], (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            return;
-        }
-    });
+const sendSocket = (message) => {
+    mumbleClient.write(`<self><${message}>${message}</${message}></self>`);
 }
 
 const socket = io('http://localhost:8249');
+const mumbleClient = net.connect(`${process.env.HOME}/.MumbleSocket`);
 
 let isMuted = true;
 
 socket.on("getMuteStatus", function (data) {
     socket.emit("muteStatus", { data: isMuted ? "chromeMute:muted" : "chromeMute:unmuted", id: data.id });
-  
 });
   
 socket.on("toggleMuteStatus", function (data) {
-    isMuted = !isMuted;
     if (isMuted) {
-        sendTerminal("starttalking");
+        sendSocket("starttalking");
     } else {
-        sendTerminal("stoptalking");
+        sendSocket("stoptalking");
     }
+    isMuted = !isMuted;
     socket.emit("muteStatusToggled", { data: "done", id: data.id });
 });
