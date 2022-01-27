@@ -1,10 +1,8 @@
 const io = require("socket.io-client");
-const { exec } = require("child_process");
+const { execFile } = require("child_process");
 
 const sendTerminal = (message) => {
-    exec(message, {
-        shell: "/bin/zsh"
-    }, (error, stdout, stderr) => {
+    execFile('mumble', ['rpc',message], (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
             return;
@@ -26,12 +24,11 @@ socket.on("getMuteStatus", function (data) {
 });
   
 socket.on("toggleMuteStatus", function (data) {
-    console.log("toggled mute")
     isMuted = !isMuted;
     if (isMuted) {
-        sendTerminal("mumble rpc starttalking");
+        sendTerminal("starttalking");
     } else {
-        sendTerminal("mumble rpc stoptalking");
+        sendTerminal("stoptalking");
     }
     socket.emit("muteStatusToggled", { data: "done", id: data.id });
 });
